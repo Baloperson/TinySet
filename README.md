@@ -5,7 +5,7 @@ A lightweight, isomorphic state container with built-in queries, transactions, a
 
 TinySet provides a unified data layer that works identically in browsers, Node.js, and React Native. The core library handles local state with advanced querying; the optional `+` extension adds distributed features with causal consistency.
 
-> The code written with Tinyset reads like the question you're asking, not like the data structure that's querying it.
+> The code written with TinySet reads like the question you're asking, not like the data structure that's querying it.
 
 ```
 Core:    ~5kB  | 142 lines
@@ -47,7 +47,7 @@ In a vanilla implementation, the equivalent store infrastructure — type indexe
 
 Most JS data libraries are either key-value caches (fast reads, no query model) or full query engines (powerful, heavy). Neither fits the entity-component pattern well.
 
-Tinyset is built specifically for systems where you need to:
+TinySet is built specifically for systems where you need to:
 
 - Store thousands of typed entities and retrieve them by type instantly
 - Find entities within a spatial radius — without scanning the whole set
@@ -55,7 +55,7 @@ Tinyset is built specifically for systems where you need to:
 - React to changes through a lightweight event system
 - Run transactions that roll back cleanly on failure
 
-Tinyset handles typed entities, spatial queries, compound filters, and change events — the infrastructure you'd otherwise rebuild for every game, simulation, or collaborative app that needs to answer "what things are near here, and which ones match these conditions?"
+TinySet handles typed entities, spatial queries, compound filters, and change events — the infrastructure you'd otherwise rebuild for every game, simulation, or collaborative app that needs to answer "what things are near here, and which ones match these conditions?"
 
 It's not a database or a framework. It's a small predictable layer: store entities with types, query by proximity and properties, react to changes, keep operations atomic.
 
@@ -71,29 +71,29 @@ All benchmarks run on Node v24, AMD FX-6350, compared against LokiJS, NodeCache,
 
 | Library | ops/sec |
 |---|---|
-| **Tinyset** | **21,655** |
+| **TinySet** | **21,655** |
 | MemoryCache | 14,062 |
 | NodeCache | 11,579 |
 | Immutable | 10,500 |
 | Array Store | ~8,500 |
 | Object Store | 3,734 |
 
-Tinyset wins this category by ~54% over the next competitor. Isolated read or write microbenchmarks favour simpler structures — but real systems don't run isolated operations.
+TinySet wins this category by ~54% over the next competitor. Isolated read or write microbenchmarks favour simpler structures — but real systems don't run isolated operations.
 
 ### Spatial queries — average latency per query
 
 | Library | Avg latency |
 |---|---|
-| **Tinyset (filtered)** | **0.001ms** |
-| **Tinyset** | **0.004ms** |
+| **TinySet (filtered)** | **0.001ms** |
+| **TinySet** | **0.004ms** |
 | RBush | 0.060ms |
 | Flatbush | 0.073ms |
 
-**15–73× faster than dedicated spatial libraries.** The reason is architectural: Tinyset's grid cell index co-locates type filtering with proximity search. RBush and Flatbush do geometry only — type filtering is a separate pass. Tinyset does both in one sweep.
+**15–73× faster than dedicated spatial libraries.** The reason is architectural: TinySet's grid cell index co-locates type filtering with proximity search. RBush and Flatbush do geometry only — type filtering is a separate pass. TinySet does both in one sweep.
 
 ### Other categories
 
-| Category | Tinyset | Fastest overall |
+| Category | TinySet | Fastest overall |
 |---|---|---|
 | Create (10k items) | 270K ops/sec | LokiJS 703K |
 | Read — safe get (100k) | 3.3M ops/sec | MemoryCache 12M |
@@ -102,7 +102,7 @@ Tinyset wins this category by ~54% over the next competitor. Isolated read or wr
 | Query — compound filter | 1.3ms | Only tinyset supports this |
 | Memory per item | 667 bytes | LokiJS 565 bytes |
 
-Tinyset is not the fastest at any single isolated operation. It is consistently fast across all of them, and fastest at the workloads that combine them.
+TinySet is not the fastest at any single isolated operation. It is consistently fast across all of them, and fastest at the workloads that combine them.
 
 ---
 
@@ -315,7 +315,7 @@ Memory overhead for distribution: **+74%** per item (667 bytes → 879 bytes) du
 
 **One file.** Copy it in, import it, use it. No transitive dependencies to audit, no build pipeline to configure, no version conflicts.
 
-**Optimised for mixed workloads.** Microbenchmark winners (Lodash, MemoryCache) are specialised — they do one thing fast. Real systems do everything at once. Tinyset is designed for that.
+**Optimised for mixed workloads.** Microbenchmark winners (Lodash, MemoryCache) are specialised — they do one thing fast. Real systems do everything at once. TinySet is designed for that.
 
 **Spatial and type indexing are first-class.** Not an afterthought or plugin. The grid cell index and type index are maintained on every write and queried together. This is why spatial queries beat dedicated spatial libraries.
 
