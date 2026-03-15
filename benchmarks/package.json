@@ -1,0 +1,21 @@
+{
+  "name": "tinyset-benchmarks",
+  "version": "1.0.0",
+  "description": "Benchmark suite for tinyset.js",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "bench":      "node --expose-gc bench.js",
+    "bench:plus": "node --expose-gc bench.plus.js"
+  },
+  "devDependencies": {
+    "lokijs":       "^1.5.12",
+    "lodash":       "^4.17.21",
+    "immutable":    "^4.3.7",
+    "rbush":        "^3.0.1",
+    "flatbush":     "^4.4.0",
+    "node-cache":   "^5.1.2",
+    "memory-cache": "^0.2.0",
+    "quick-lru":    "^7.0.0"
+  }
+}
