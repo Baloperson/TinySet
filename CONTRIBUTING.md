@@ -1,6 +1,6 @@
-# Contributing to TinySet
+# Contributing to TinyOp
 
-Thanks for taking the time to contribute. TinySet is a small, focused library and contributions should stay consistent with that fixes, edge cases, and well-reasoned additions, not feature creep. 
+Thanks for taking the time to contribute. TinyOp is a small, focused library and contributions should stay consistent with that fixes, edge cases, and well-reasoned additions, not feature creep. 
 
 ## Contributor License Agreement
 
@@ -32,7 +32,7 @@ Note: This is standard for projects that may dual-license. Individual contributo
 - New API methods or changes to existing method signatures
 - Changes to the spatial indexing strategy or query engine
 - Anything that would increase the bundle size meaningfully
-- `tinyset+` changes involving sync or vector clock behaviour
+- `TinyOp+` changes involving sync or vector clock behaviour
 
 **Out of scope:**
 
@@ -53,13 +53,13 @@ Note: This is standard for projects that may dual-license. Individual contributo
 
 ## Code style
 
-TinySet core is intentionally dense. Match the existing style:
+TinyOp core is intentionally dense. Match the existing style:
 
 - No dependencies, no build step
 - Compact but not obfuscated — variable names should be readable in context
 - New public API methods follow the existing naming conventions (`find`, `near`, `get`, `create`, etc.)
 - No TypeScript in the source files
-- No comments in the minified-style sections of `tinyset.js` — the README is the documentation
+- No comments in the minified-style sections of `TinyOp.js` — the README is the documentation
 
 ---
 
@@ -67,7 +67,7 @@ TinySet core is intentionally dense. Match the existing style:
 
 Open an issue with:
 
-- The version of `tinyset.js` you are using
+- The version of `TinyOp.js` you are using
 - A minimal reproduction — ideally a self-contained code snippet
 - What you expected to happen and what actually happened
 - Node version and environment if relevant (browser, React Native, etc.)

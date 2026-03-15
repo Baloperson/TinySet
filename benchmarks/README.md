@@ -1,6 +1,6 @@
-# TinySet Benchmarks
+# TinyOp Benchmarks
 
-Two benchmark suites — one for the core library against competitors, one for the `tinyset+` distributed features.
+Two benchmark suites — one for the core library against competitors, one for the `TinyOp+` distributed features.
 
 ## Setup
 
@@ -9,17 +9,17 @@ cd benchmarks
 npm install
 ```
 
-This installs the comparison libraries (LokiJS, Lodash, Immutable.js, RBush, Flatbush, NodeCache, MemoryCache, QuickLRU) as dev dependencies. They are not required to use TinySet itself.
+This installs the comparison libraries (LokiJS, Lodash, Immutable.js, RBush, Flatbush, NodeCache, MemoryCache, QuickLRU) as dev dependencies. They are not required to use TinyOp itself.
 
-Both benchmark files expect `tinyset.js` and `tinyset.plus.js` to be in the parent directory (`../tinyset.js`). If you've cloned the repo normally, this is already the case.
+Both benchmark files expect `TinyOp.js` and `TinyOp.plus.js` to be in the parent directory (`../TinyOp.js`). If you've cloned the repo normally, this is already the case.
 
 ## Running
 
 ```bash
-# Core benchmark — TinySet vs 8 competitors
+# Core benchmark — TinyOp vs 8 competitors
 node --expose-gc bench.js
 
-# Distributed benchmark — tinyset+ journal, clocks, sync, affine ops
+# Distributed benchmark — TinyOp+ journal, clocks, sync, affine ops
 node --expose-gc bench.plus.js
 ```
 
@@ -29,7 +29,7 @@ The `--expose-gc` flag enables accurate memory measurements. Both files run with
 
 ### bench.js
 
-Compares TinySet against LokiJS, NodeCache, MemoryCache, QuickLRU, Lodash, Immutable.js, and raw Array/Object stores across:
+Compares TinyOp against LokiJS, NodeCache, MemoryCache, QuickLRU, Lodash, Immutable.js, and raw Array/Object stores across:
 
 - **Create** — 10,000 item insertions
 - **Read** — 100,000 random reads (safe copy and live ref paths)
@@ -43,14 +43,14 @@ The mixed workload is the most representative benchmark. Real game loops and col
 
 ### bench.plus.js
 
-Tests the distributed layer in `tinyset+`:
+Tests the distributed layer in `TinyOp+`:
 
 - **Journal** — write throughput, query latency (by time, process, type), checkpoint cost
 - **Vector clocks** — increment (via create), snapshot, merge, current-read throughput
 - **Sync** — operation generation speed, export/import throughput (in-process WebSocket mock)
 - **Merge strategies** — ours, theirs, timestamp — with real conflicts
 - **Affine operations** — single apply, batch apply, compose, inverse
-- **Memory overhead** — tinyset+ vs base tinyset per item
+- **Memory overhead** — TinyOp+ vs base TinyOp per item
 
 ## Reproducibility
 

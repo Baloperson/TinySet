@@ -11,7 +11,7 @@
 // GNU General Public License for more details.
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <https://www.gnu.org/licenses/>.
-// tinyset.js v2.9
+// tinyop.js v2.9
 // _key: stable serialised string on all where.* predicates — enables compound query caching
 const _k=(f,key)=>{f._key=key;return f}
 export const where={

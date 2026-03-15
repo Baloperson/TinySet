@@ -1,8 +1,8 @@
-// tinyset.js benchmark suite
+// tinyop.js benchmark suite
 // usage:  node --expose-gc bench.js
 // deps:   npm install lokijs lodash immutable rbush flatbush node-cache memory-cache quick-lru
 
-import { createStore as createTinyset, where } from '../tinyset.js'
+import { createStore as createtinyop, where } from '../tinyop.js'
 
 
 // ── optional libraries ────────────────────────────────────────────────────────
@@ -97,9 +97,9 @@ class ObjectStore {
 function buildLibraries() {
   const libs = new Map()
 
-  // Tinyset — two read paths tested separately
-  libs.set('Tinyset (safe get)', () => createTinyset())
-  libs.set('Tinyset (ref)',      () => createTinyset())
+  // tinyop — two read paths tested separately
+  libs.set('tinyop (safe get)', () => createtinyop())
+  libs.set('tinyop (ref)',      () => createtinyop())
 
   libs.set('Array Store',  () => new ArrayStore())
   libs.set('Object Store', () => new ObjectStore())
@@ -276,7 +276,7 @@ function benchRead(libs) {
       for (let i = 0; i < 1000; i++) {
         const item = store.create('test', { value: i }); ids.push(item.id)
       }
-      const useRef = name === 'Tinyset (ref)'
+      const useRef = name === 'tinyop (ref)'
       const { ms } = bench(rand => {
         for (let i = 0; i < N; i++) {
           const id = ids[rand() * ids.length | 0]
@@ -319,23 +319,23 @@ function benchQuery(libs) {
       for (let i = 0; i < 10_000; i++)
         store.create('test', { value: i, category: i % 10, active: i % 2 === 0, score: Math.random() * 100 })
 
-      const isTinyset = name.includes('Tinyset')
+      const istinyop = name.includes('tinyop')
       const isLoki    = name === 'LokiJS'
 
       // simple
       const { ms: sMs } = bench(() => {
         for (let i = 0; i < 100; i++) {
-          if (isTinyset) store.find('test', where.and(where.eq('category', 5), where.eq('active', true)))
+          if (istinyop) store.find('test', where.and(where.eq('category', 5), where.eq('active', true)))
           else store.find('test', { category: 5, active: true })
         }
       })
 
       // complex (compound operators)
       let cStr = 'N/A'
-      if (isTinyset || isLoki) {
+      if (istinyop || isLoki) {
         const { ms: cMs } = bench(() => {
           for (let i = 0; i < 100; i++) {
-            if (isTinyset)
+            if (istinyop)
               store.find('test', where.and(where.gt('value', 5000), where.in('category', [2,4,6,8]), where.eq('active', true)))
             else
               store.find('test', { value: { $gt: 5000 }, category: { $in: [2,4,6,8] }, active: true })
@@ -354,7 +354,7 @@ function benchMixed(libs) {
   // 40% read  — get entity by id
   // 20% write — update a field
   // 20% simple find — query by type + one equality predicate
-  // 20% complex find — compound where (tinyset advantage territory)
+  // 20% complex find — compound where (tinyop advantage territory)
   // Store is pre-seeded with 1,000 entities; we do not create/delete in the loop
 
   console.log('\nMIXED WORKLOAD (10,000 operations)')
@@ -370,9 +370,9 @@ function benchMixed(libs) {
         })
         ids.push(item.id)
       }
-      const isTinyset = name.includes('Tinyset')
+      const istinyop = name.includes('tinyop')
       const isLoki    = name === 'LokiJS'
-      const useRef    = name === 'Tinyset (ref)'
+      const useRef    = name === 'tinyop (ref)'
 
       const { ms } = bench(rand => {
         for (let i = 0; i < N; i++) {
@@ -389,11 +389,11 @@ function benchMixed(libs) {
           } else if (r < 0.8) {
             // simple find
             const cat = rand() * 10 | 0
-            if (isTinyset) store.find('test', where.eq('category', cat))
+            if (istinyop) store.find('test', where.eq('category', cat))
             else store.find('test', { category: cat })
           } else {
             // complex find — compound predicates
-            if (isTinyset)
+            if (istinyop)
               store.find('test', where.and(where.gt('value', 500), where.eq('active', true)))
             else if (isLoki)
               store.find('test', { value: { $gt: 500 }, active: true })
@@ -437,17 +437,17 @@ async function benchSpatial() {
   console.log('\n  SPATIAL QUERY PERFORMANCE (avg over 100 queries, 10,000 points)')
   console.log('-'.repeat(60))
 
-  // Tinyset
-  const ts = createTinyset()
+  // tinyop
+  const ts = createtinyop()
   const rand = makePRNG(1)
   for (let i = 0; i < 10_000; i++)
     ts.create('pt', { x: rand() * 1000, y: rand() * 1000, value: i })
 
   const { ms: tsMs } = bench(() => { for (let i = 0; i < 100; i++) ts.near('pt', 500, 500, 100).all() })
-  console.log(`${pad('Tinyset Spatial', 28)}: ${(tsMs/100).toFixed(3)}ms avg`)
+  console.log(`${pad('tinyop Spatial', 28)}: ${(tsMs/100).toFixed(3)}ms avg`)
 
   const { ms: tsFMs } = bench(() => { for (let i = 0; i < 100; i++) ts.near('pt', 500, 500, 100, where.gt('value', 5000)).all() })
-  console.log(`${pad('Tinyset Spatial (filtered)', 28)}: ${(tsFMs/100).toFixed(3)}ms avg`)
+  console.log(`${pad('tinyop Spatial (filtered)', 28)}: ${(tsFMs/100).toFixed(3)}ms avg`)
 
   // RBush
   if (RBush) {
@@ -475,7 +475,7 @@ async function benchSpatial() {
 // ── main ──────────────────────────────────────────────────────────────────────
 
 console.log('='.repeat(70))
-console.log(' TINYSET.JS BENCHMARK ')
+console.log(' tinyop.JS BENCHMARK ')
 console.log('='.repeat(70))
 console.log(`Node ${process.version} | ${new Date().toLocaleTimeString()} | ${RUNS} runs, reporting median`)
 if (!global.gc) console.log('⚠  run with --expose-gc for memory metrics')

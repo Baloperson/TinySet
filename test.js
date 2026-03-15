@@ -1,9 +1,9 @@
-// tinyset.js test suite
+// tinyop.js test suite
 // usage: node --test test.js
 
 import { describe, it, beforeEach } from 'node:test'
 import assert from 'node:assert/strict'
-import { createStore, where } from './tinyset.js'
+import { createStore, where } from './tinyop.js'
 
 function makeStore(opts) {
   return createStore(opts)

@@ -1,12 +1,12 @@
 {
-  "name": "tinyset",
+  "name": "tinyop",
   "version": "2.9.0",
   "description": "Lightweight in-memory store for entity-component and spatial systems",
   "type": "module",
-  "main": "./tinyset.js",
+  "main": "./tinyop.js",
   "exports": {
-    ".": "./tinyset.js",
-    "./plus": "./tinyset.plus.js"
+    ".": "./tinyop.js",
+    "./plus": "./tinyop.plus.js"
   },
   "license": "GPL-3.0"
 }

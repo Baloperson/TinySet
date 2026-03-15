@@ -1,8 +1,8 @@
-// bench.plus.js — tinyset+ distributed benchmark suite
+// bench.plus.js — tinyop+ distributed benchmark suite
 // usage: node --expose-gc bench.plus.js
 
-import { createStore }                    from '../tinyset.plus.js'
-import { createStore as base, where }     from '../tinyset.js'
+import { createStore }                    from '../tinyop.plus.js'
+import { createStore as base, where }     from '../tinyop.js'
 import os from 'os'
 
 // ── utilities ─────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ class MockWS {
   }
   send(d) {
     if(this.readyState !== 1) return
-    // tinyset+ sends {type:'batch', ops:[...]} or {type:'hello',...}
+    // tinyop+ sends {type:'batch', ops:[...]} or {type:'hello',...}
     // broadcast all ops to peers
     try {
       const msg = JSON.parse(d)
@@ -335,10 +335,10 @@ async function benchMemory() {
   const { mem: baseMem } = await measureStore(() => base())
   const { store: plusStore, mem: plusMem } = await measureStore(() => createStore({ processId: 'mem-test' }))
 
-  console.log(`Base tinyset (10k items):`)
+  console.log(`Base tinyop (10k items):`)
   console.log(`  Total:    ${fmtB(baseMem)}`)
   console.log(`  Per item: ${fmtB(baseMem/10_000)}`)
-  console.log(`\ntinyset+ (10k items):`)
+  console.log(`\ntinyop+ (10k items):`)
   console.log(`  Total:    ${fmtB(plusMem)}`)
   console.log(`  Per item: ${fmtB(plusMem/10_000)}`)
   console.log(`  Overhead: ${fmtB(plusMem-baseMem)} (${((plusMem-baseMem)/baseMem*100).toFixed(1)}%)`)
@@ -347,7 +347,7 @@ async function benchMemory() {
 
 // ── main ───────────────────────────────────────────────────────────────────────
 console.log('='.repeat(70))
-console.log(' TINYSET+ DISTRIBUTED BENCHMARK SUITE')
+console.log(' tinyop+ DISTRIBUTED BENCHMARK SUITE')
 console.log('='.repeat(70))
 console.log(`Node ${process.version} | ${new Date().toLocaleTimeString()} | ${RUNS} runs, reporting median`)
 console.log(`CPU: ${os.cpus()[0].model}`)
