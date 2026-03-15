@@ -1,3 +1,4 @@
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 # tinyset.js
 
 A lightweight, isomorphic state container with built-in queries, transactions, and optional real-time synchronization.
