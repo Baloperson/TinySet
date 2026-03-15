@@ -60,6 +60,8 @@ Tinyset is built specifically for systems where you need to:
 - Filter with compound predicates and chain results
 - React to changes through a lightweight event system
 - Run transactions that roll back cleanly on failure
+Tinyset handles typed entities, spatial queries, compound filters, and change events — the infrastructure you'd otherwise rebuild for every game, simulation, or collaborative app that needs to answer "what things are near here, and which ones match these conditions?"
+It's not a database or a framework. It's a small predictable layer: store entities with types, query by proximity and properties, react to changes, keep operations atomic.
 
 It wins on **mixed workloads** — the benchmark that reflects real game loops and collaborative apps, where creates, reads, updates, and deletes happen in every frame.
 
