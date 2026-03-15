@@ -16,10 +16,10 @@ function makeStore(opts) {
 describe('create', () => {
   it('returns the created entity with id, type, created, modified', () => {
     const store = makeStore()
-    const e = store.create('enemy', { hp: 50 })
+    const e = store.create('item', { val: 50 })
     assert.ok(e.id)
-    assert.equal(e.type, 'enemy')
-    assert.equal(e.hp, 50)
+    assert.equal(e.type, 'item')
+    assert.equal(e.val, 50)
     assert.ok(typeof e.created === 'number')
     assert.ok(typeof e.modified === 'number')
   })
@@ -46,37 +46,37 @@ describe('create', () => {
   })
 
   it('applies type defaults', () => {
-    const store = makeStore({ defaults: { enemy: { hp: 30, alive: true } } })
-    const e = store.create('enemy', {})
-    assert.equal(e.hp, 30)
+    const store = makeStore({ defaults: { item: { val: 30, alive: true } } })
+    const e = store.create('item', {})
+    assert.equal(e.val, 30)
     assert.equal(e.alive, true)
   })
 
   it('prop values override defaults', () => {
-    const store = makeStore({ defaults: { enemy: { hp: 30 } } })
-    const e = store.create('enemy', { hp: 99 })
-    assert.equal(e.hp, 99)
+    const store = makeStore({ defaults: { item: { val: 30 } } })
+    const e = store.create('item', { val: 99 })
+    assert.equal(e.val, 99)
   })
 
   it('throws on invalid type when types set is provided', () => {
-    const store = makeStore({ types: new Set(['player']) })
-    assert.throws(() => store.create('enemy', {}), /Invalid type/)
+    const store = makeStore({ types: new Set(['record']) })
+    assert.throws(() => store.create('item', {}), /Invalid type/)
   })
 
   it('does not throw for valid type', () => {
-    const store = makeStore({ types: new Set(['player']) })
-    assert.doesNotThrow(() => store.create('player', {}))
+    const store = makeStore({ types: new Set(['record']) })
+    assert.doesNotThrow(() => store.create('record', {}))
   })
 })
 
 describe('createMany', () => {
   it('creates multiple entities and returns them all', () => {
     const store = makeStore()
-    const items = store.createMany('enemy', [{ hp: 10 }, { hp: 20 }, { hp: 30 }])
+    const items = store.createMany('item', [{ val: 10 }, { val: 20 }, { val: 30 }])
     assert.equal(items.length, 3)
-    assert.equal(items[0].hp, 10)
-    assert.equal(items[2].hp, 30)
-    assert.equal(store.count('enemy'), 3)
+    assert.equal(items[0].val, 10)
+    assert.equal(items[2].val, 30)
+    assert.equal(store.count('item'), 3)
   })
 })
 
@@ -138,9 +138,9 @@ describe('update', () => {
 
   it('supports a functional updater', () => {
     const store = makeStore()
-    const e = store.create('x', { hp: 100 })
-    store.update(e.id, old => ({ hp: old.hp - 10 }))
-    assert.equal(store.get(e.id).hp, 90)
+    const e = store.create('x', { val: 100 })
+    store.update(e.id, old => ({ val: old.val - 10 }))
+    assert.equal(store.get(e.id).val, 90)
   })
 
   it('returns null for unknown id', () => {
@@ -152,14 +152,14 @@ describe('update', () => {
 describe('set', () => {
   it('sets a single field', () => {
     const store = makeStore()
-    const e = store.create('x', { hp: 10 })
-    store.set(e.id, 'hp', 50)
-    assert.equal(store.get(e.id).hp, 50)
+    const e = store.create('x', { val: 10 })
+    store.set(e.id, 'val', 50)
+    assert.equal(store.get(e.id).val, 50)
   })
 
   it('returns null for unknown id', () => {
     const store = makeStore()
-    assert.equal(store.set('nope', 'hp', 1), null)
+    assert.equal(store.set('nope', 'val', 1), null)
   })
 })
 
@@ -236,11 +236,11 @@ describe('dump / stats', () => {
 
   it('stats returns correct item and type counts', () => {
     const store = makeStore()
-    store.create('player', {}); store.create('enemy', {}); store.create('enemy', {})
+    store.create('record', {}); store.create('item', {}); store.create('item', {})
     const s = store.stats()
     assert.equal(s.items, 3)
-    assert.equal(s.types.player, 1)
-    assert.equal(s.types.enemy, 2)
+    assert.equal(s.types.record, 1)
+    assert.equal(s.types.item, 2)
   })
 })
 
@@ -338,15 +338,15 @@ describe('find', () => {
   let store
   beforeEach(() => {
     store = makeStore()
-    store.create('enemy', { hp: 10, tier: 'normal', active: true })
-    store.create('enemy', { hp: 50, tier: 'elite',  active: true })
-    store.create('enemy', { hp: 80, tier: 'boss',   active: false })
-    store.create('player', { hp: 100 })
+    store.create('item', { val: 10, tier: 'a', active: true })
+    store.create('item', { val: 50, tier: 'b',  active: true })
+    store.create('item', { val: 80, tier: 'c',   active: false })
+    store.create('record', { val: 100 })
   })
 
   it('find with no predicate returns all of that type', () => {
-    assert.equal(store.find('enemy').count(), 3)
-    assert.equal(store.find('player').count(), 1)
+    assert.equal(store.find('item').count(), 3)
+    assert.equal(store.find('record').count(), 1)
   })
 
   it('find returns empty for unknown type', () => {
@@ -354,34 +354,34 @@ describe('find', () => {
   })
 
   it('inline predicate filters correctly', () => {
-    const result = store.find('enemy', e => e.hp > 20).all()
+    const result = store.find('item', e => e.val > 20).all()
     assert.equal(result.length, 2)
-    assert.ok(result.every(e => e.hp > 20))
+    assert.ok(result.every(e => e.val > 20))
   })
 
   it('count shorthand', () => {
-    assert.equal(store.count('enemy'), 3)
-    assert.equal(store.count('enemy', e => e.active), 2)
+    assert.equal(store.count('item'), 3)
+    assert.equal(store.count('item', e => e.active), 2)
   })
 
   it('sort ascending by field', () => {
-    const sorted = store.find('enemy').sort('hp').all()
-    assert.equal(sorted[0].hp, 10)
-    assert.equal(sorted[2].hp, 80)
+    const sorted = store.find('item').sort('val').all()
+    assert.equal(sorted[0].val, 10)
+    assert.equal(sorted[2].val, 80)
   })
 
   it('limit and offset', () => {
-    const sorted = store.find('enemy').sort('hp').limit(2).all()
+    const sorted = store.find('item').sort('val').limit(2).all()
     assert.equal(sorted.length, 2)
-    const offset = store.find('enemy').sort('hp').offset(1).all()
+    const offset = store.find('item').sort('val').offset(1).all()
     assert.equal(offset.length, 2)
-    assert.equal(offset[0].hp, 50)
+    assert.equal(offset[0].val, 50)
   })
 
   it('first and last', () => {
-    const q = store.find('enemy').sort('hp')
-    assert.equal(q.first().hp, 10)
-    assert.equal(q.last().hp, 80)
+    const q = store.find('item').sort('val')
+    assert.equal(q.first().val, 10)
+    assert.equal(q.last().val, 80)
   })
 
   it('first returns null on empty result', () => {
@@ -389,7 +389,7 @@ describe('find', () => {
   })
 
   it('ids returns array of ids', () => {
-    const ids = store.find('enemy').ids()
+    const ids = store.find('item').ids()
     assert.equal(ids.length, 3)
     ids.forEach(id => assert.equal(typeof id, 'string'))
   })
@@ -477,17 +477,17 @@ describe('query cache correctness', () => {
   it('cached result matches uncached result', () => {
     const store = makeStore()
     for (let i = 0; i < 100; i++)
-      store.create('enemy', { hp: i, tier: i % 2 === 0 ? 'elite' : 'normal' })
+      store.create('item', { val: i, tier: i % 2 === 0 ? 'b' : 'a' })
 
-    const pred = where.and(where.eq('tier', 'elite'), where.gt('hp', 40))
+    const pred = where.and(where.eq('tier', 'b'), where.gt('val', 40))
 
     // first call — cold miss, populates cold cache
-    const r1 = store.find('enemy', pred).all()
+    const r1 = store.find('item', pred).all()
     // second and third — promotes to hot cache on third hit
-    store.find('enemy', pred).all()
-    const r3 = store.find('enemy', pred).all()
+    store.find('item', pred).all()
+    const r3 = store.find('item', pred).all()
     // fourth — should be served from hot cache
-    const r4 = store.find('enemy', pred).all()
+    const r4 = store.find('item', pred).all()
 
     assert.deepEqual(r1.map(e => e.id).sort(), r3.map(e => e.id).sort())
     assert.deepEqual(r1.map(e => e.id).sort(), r4.map(e => e.id).sort())
@@ -496,37 +496,37 @@ describe('query cache correctness', () => {
   it('cache is invalidated after a write to the same type', () => {
     const store = makeStore()
     for (let i = 0; i < 20; i++)
-      store.create('enemy', { hp: i })
+      store.create('item', { val: i })
 
-    const pred = where.gt('hp', 15)
-    const before = store.find('enemy', pred).count()
-    store.find('enemy', pred).count() 
-    store.find('enemy', pred).count()
-    store.find('enemy', pred).count() 
+    const pred = where.gt('val', 15)
+    const before = store.find('item', pred).count()
+    store.find('item', pred).count() 
+    store.find('item', pred).count()
+    store.find('item', pred).count() 
 
-    store.create('enemy', { hp: 99 }) 
+    store.create('item', { val: 99 }) 
 
-    const after = store.find('enemy', pred).count()
+    const after = store.find('item', pred).count()
     assert.equal(after, before + 1)
   })
 
   it('write to type A does not invalidate cache for type B', () => {
     const store = makeStore()
-    for (let i = 0; i < 10; i++) store.create('player', { score: i })
-    for (let i = 0; i < 10; i++) store.create('enemy', { hp: i })
+    for (let i = 0; i < 10; i++) store.create('record', { score: i })
+    for (let i = 0; i < 10; i++) store.create('item', { val: i })
 
     const pred = where.gt('score', 5)
-    // warm up player cache to hot
-    store.find('player', pred).count()
-    store.find('player', pred).count()
-    store.find('player', pred).count()
-    const countBefore = store.find('player', pred).count()
+    // warm up record cache to hot
+    store.find('record', pred).count()
+    store.find('record', pred).count()
+    store.find('record', pred).count()
+    const countBefore = store.find('record', pred).count()
 
-    // write to enemy — should NOT affect player cache
-    store.create('enemy', { hp: 99 })
-    store.update(store.find('enemy').first().id, { hp: 0 })
+    // write to item — should NOT affect record cache
+    store.create('item', { val: 99 })
+    store.update(store.find('item').first().id, { val: 0 })
 
-    const countAfter = store.find('player', pred).count()
+    const countAfter = store.find('record', pred).count()
     assert.equal(countAfter, countBefore)
   })
 
@@ -548,17 +548,17 @@ describe('query cache correctness', () => {
 
   it('cache is invalidated after update changes predicate match', () => {
     const store = makeStore()
-    const e = store.create('enemy', { hp: 10 })
-    for (let i = 0; i < 5; i++) store.create('enemy', { hp: 100 })
+    const e = store.create('item', { val: 10 })
+    for (let i = 0; i < 5; i++) store.create('item', { val: 100 })
 
-    const pred = where.gt('hp', 50)
-    store.find('enemy', pred).count()
-    store.find('enemy', pred).count()
-    store.find('enemy', pred).count() 
+    const pred = where.gt('val', 50)
+    store.find('item', pred).count()
+    store.find('item', pred).count()
+    store.find('item', pred).count() 
 
-    store.update(e.id, { hp: 200 }) 
+    store.update(e.id, { val: 200 }) 
 
-    assert.equal(store.find('enemy', pred).count(), 6)
+    assert.equal(store.find('item', pred).count(), 6)
   })
 
   it('inline predicates (no _key) still return correct results', () => {
@@ -595,14 +595,14 @@ describe('spatial index', () => {
 
   beforeEach(() => {
     store = makeStore({ spatialGridSize: 100 })
-    store.create('enemy', { x: 110, y: 210, hp: 50, label: 'close' })
-    store.create('enemy', { x: 150, y: 200, hp: 30, label: 'medium' })
-    store.create('enemy', { x: 400, y: 400, hp: 80, label: 'far' })
-    store.create('player', { x: 100, y: 200 })
+    store.create('item', { x: 110, y: 210, val: 50, label: 'close' })
+    store.create('item', { x: 150, y: 200, val: 30, label: 'medium' })
+    store.create('item', { x: 400, y: 400, val: 80, label: 'far' })
+    store.create('record', { x: 100, y: 200 })
   })
 
   it('near returns only entities within radius', () => {
-    const result = store.near('enemy', 100, 200, 60).all()
+    const result = store.near('item', 100, 200, 60).all()
     const labels = result.map(e => e.label)
     assert.ok(labels.includes('close'))
     assert.ok(labels.includes('medium'))
@@ -610,26 +610,26 @@ describe('spatial index', () => {
   })
 
   it('near returns results sorted by distance ascending', () => {
-    const result = store.near('enemy', 100, 200, 200).all()
+    const result = store.near('item', 100, 200, 200).all()
     assert.equal(result[0].label, 'close')
     assert.equal(result[1].label, 'medium')
   })
 
   it('near does not return entities of a different type', () => {
     
-    const result = store.near('enemy', 100, 200, 500).all()
-    assert.ok(result.every(e => e.type === 'enemy'))
+    const result = store.near('item', 100, 200, 500).all()
+    assert.ok(result.every(e => e.type === 'item'))
   })
 
   it('near with predicate filters results', () => {
     
-    const result = store.near('enemy', 100, 200, 200, e => e.hp > 40).all()
+    const result = store.near('item', 100, 200, 200, e => e.val > 40).all()
     assert.equal(result.length, 1)
     assert.equal(result[0].label, 'close')
   })
 
   it('near returns empty array when nothing is in range', () => {
-    const result = store.near('enemy', 0, 0, 5).all()
+    const result = store.near('item', 0, 0, 5).all()
     assert.equal(result.length, 0)
   })
 
@@ -638,26 +638,26 @@ describe('spatial index', () => {
   })
 
   it('spatial index updates when entity moves', () => {
-    const e = store.find('enemy', where.eq('label', 'far')).first()
-    // move far enemy to be close
+    const e = store.find('item', where.eq('label', 'far')).first()
+    // move far item to be close
     store.update(e.id, { x: 105, y: 205 })
-    const result = store.near('enemy', 100, 200, 20).all()
+    const result = store.near('item', 100, 200, 20).all()
     assert.ok(result.some(r => r.id === e.id))
   })
 
   it('spatial index removes entity on delete', () => {
-    const e = store.find('enemy', where.eq('label', 'close')).first()
+    const e = store.find('item', where.eq('label', 'close')).first()
     store.delete(e.id)
-    const result = store.near('enemy', 100, 200, 60).all()
+    const result = store.near('item', 100, 200, 60).all()
     assert.ok(!result.some(r => r.id === e.id))
   })
 
   it('entities without x/y are not in spatial index', () => {
-    const noPos = store.create('enemy', { label: 'nopos', hp: 10 })
-    const result = store.near('enemy', 200, 300, 1000).all()
+    const noPos = store.create('item', { label: 'nopos', val: 10 })
+    const result = store.near('item', 200, 300, 1000).all()
     assert.ok(!result.some(r => r.id === noPos.id))
    
-    assert.ok(store.find('enemy', where.eq('label', 'nopos')).first())
+    assert.ok(store.find('item', where.eq('label', 'nopos')).first())
   })
 
   it('works correctly across grid cell boundaries', () => {
