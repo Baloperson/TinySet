@@ -109,7 +109,7 @@ Tinyset is not the fastest at any single isolated operation. It is consistently 
 ## Installation
 
 ```bash
-curl -O https://raw.githubusercontent.com/your-repo/tinyset/main/tinyset.js
+curl -O https://raw.githubusercontent.com/Baloperson/TinySet/main/tinyset.js
 ```
 
 Or just download `tinyset.js`. No build step. No package manager required. It's one file.
