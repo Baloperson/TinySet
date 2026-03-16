@@ -1,12 +1,46 @@
 {
   "name": "tinyop",
-  "version": "2.9.0",
-  "description": "Lightweight in-memory store for entity-component and spatial systems",
+  "version": "1.0.0",
+  "description": "Typed entity store with spatial indexing, compound queries, and reactive events. 8kB, zero dependencies.",
   "type": "module",
   "main": "./tinyop.js",
   "exports": {
-    ".": "./tinyop.js",
-    "./plus": "./tinyop.plus.js"
+    ".": {
+      "import": "./tinyop.js",
+      "default": "./tinyop.js"
+    },
+    "./plus": {
+      "import": "./tinyop.plus.js",
+      "default": "./tinyop.plus.js"
+    }
   },
-  "license": "GPL-3.0"
+  "files": [
+    "tinyop.js",
+    "tinyop.plus.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "entity-component-system",
+    "spatial-index",
+    "state-management",
+    "in-memory",
+    "query",
+    "game-dev",
+    "ecs",
+    "reactive"
+  ],
+  "author": "Baloperson",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Baloperson/TinyOp.git"
+  },
+  "homepage": "https://github.com/Baloperson/TinyOp#readme",
+  "bugs": {
+    "url": "https://github.com/Baloperson/TinyOp/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }
