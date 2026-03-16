@@ -373,3 +373,4 @@ Memory overhead for distribution: **+81%** per item (~473 bytes → ~856 bytes) 
 - **No schema enforcement by default.** Pass `types` to the store config for runtime type validation. Field types are not validated — tinyop is not a typed database.
 - **Read performance trades off for write safety.** `store.get()` returns a shallow copy to prevent external mutation. Use `store.getRef()` for the live reference when performance matters and you won't mutate it.
 - **Query cache cost on write-heavy workloads.** The hot cache adds a small overhead per write to maintain per-type version counters. Workloads that are predominantly writes with few repeated queries see a modest regression versus a bare Map store. The cache can be worked around by always using inline predicates (`e => e.hp > 0` rather than `where.gt('hp', 0)`) which bypass the hot tier.
+- ** TinyOp falls behind for workloads that are very small and where querys are not called repeatedly  
