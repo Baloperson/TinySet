@@ -1,5 +1,5 @@
 {
-  "name": "tinyset-benchmarks",
+  "name": "tinyop-benchmarks",
   "version": "1.0.0",
   "description": "Benchmark suite for tinyset.js",
   "type": "module",
@@ -8,7 +8,7 @@
     "bench":      "node --expose-gc bench.js",
     "bench:plus": "node --expose-gc bench.plus.js"
   },
-  "devDependencies": {
+  "Dependencies": {
     "lokijs":       "^1.5.12",
     "lodash":       "^4.17.21",
     "immutable":    "^4.3.7",
