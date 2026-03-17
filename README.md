@@ -406,3 +406,8 @@ Memory overhead for distribution: **+81%** per item (~473 bytes → ~856 bytes) 
 - **Read performance trades off for write safety.** `store.get()` returns a shallow copy to prevent external mutation. Use `store.getRef()` for the live reference when performance matters and you won't mutate it.
 - **Query cache overhead on write-heavy workloads.** The hot cache adds a small overhead per write to maintain per-type version counters. Workloads that are predominantly writes with few repeated queries see a modest regression versus a bare Map store. Use inline predicates (`e => e.count > 0` rather than `where.gt('count', 0)`) to bypass the hot tier when needed.
 - **Small stores with non-repeated queries see no cache benefit.** The hot/cold cache pays off when the same predicate is called multiple times between writes. For one-shot queries over a handful of entities, a plain Map is faster.
+- **Transactions don't isolate reads** - You'll see partial updates
+- **Caching is best-effort** - Don't rely on cache invalidation timing
+- **Views recompute every call** - Views aren't persistent caches
+- **NaN/Infinity are valid coordinates** - Validate yourself
+- **__proto__ is a valid key** - We don't sanitize
