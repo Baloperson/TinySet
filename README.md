@@ -1,7 +1,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 # tinyop.js
 Works anywhere with JavaScript and memory.
-Tinyop is a typed entity store with spatial indexing, reactive events, and compound queries. 8kB, zero dependencies. The infrastructure you'd otherwise rebuild.
+Tinyop is a typed entity store with spatial indexing, reactive events, and compound queries. 9kB, zero dependencies. The infrastructure you'd otherwise rebuild.
 
 tinyop provides a unified data layer that works identically in browsers, Node.js, and React Native. The core library handles local state with advanced querying; the optional `+` extension adds distributed features with causal consistency.
 
@@ -419,6 +419,6 @@ Memory overhead for distribution: **+81%** per item (~473 bytes → ~856 bytes) 
 - **Small stores with non-repeated queries see no cache benefit.** The hot/cold cache pays off when the same predicate is called multiple times between writes. For one-shot queries over a handful of entities, a plain Map is faster.
 - **Transactions don't isolate reads** - You'll see partial updates
 - **Caching is best-effort** - Don't rely on cache invalidation timing
-- **Views recompute every call** - Views aren't persistent caches
+- **Views update on changes** - The cached result is valid until relevant entities change, then recomputed once
 - **NaN/Infinity are valid coordinates** - Validate yourself
 - **__proto__ is a valid key** - We don't sanitize
