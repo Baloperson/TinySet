@@ -133,7 +133,7 @@ tinyop leads creates, beating LokiJS by ~47%. The counter-based id generator (re
 | Array Store | 1.89ms | N/A | 1.89ms |
 | Object Store | 7.8ms | N/A | 7.8ms |
 
-tinyop's LRU query cache promotes repeated queries — including compound `where.and`/`where.or` predicates — to frozen Q objects returned in under 0.01ms. **v3.4 adds views** (`store.view(type, predicate)`), which maintain a live, cached result set that updates automatically when relevant items change. Repeated access to a view is **O(1)** — literally a cached array return — dropping latency below measurable threshold after the first evaluation. Views also support spatial recentering without recomputation when movement stays within a threshold.
+tinyop's LRU query cache promotes repeated queries — including compound `where.and`/`where.or` predicates — to frozen Q objects returned in under 0.01ms. **v3.4 adds views** (`store.view(type, predicate)`), which maintain a live, cached result set that updates automatically when relevant items change. Repeated access to a view is **O(1)** dropping latency below measurable threshold after the first evaluation. Views also support spatial recentering without recomputation when movement stays within a threshold.
 
 LokiJS is the only other library that supports compound operators natively, at 0.37ms for the complex path — and every repeat query pays that cost again.
 
@@ -148,7 +148,7 @@ LokiJS is the only other library that supports compound operators natively, at 0
 
 tinyop's spatial index is built for **entity queries**, not raw geometry throughput. `store.near('typeA', x, y, radius)` searches only the typeA index — in a mixed-type store this eliminates 50–90% of candidates before any distance calculation. With v3.4, spatial queries can be wrapped in views that recenter efficiently without rebuilding the result set when movement is within a configured threshold.
 
-For pure geometry performance, dedicated spatial libraries are faster: RBush at ~0.010ms vs tinyop at ~0.110ms per query. If your workload is purely geometric without type filtering, RBush or Flatbush is the right choice. If you need `"find all entities within range that match these conditions"` in one call, tinyop handles it natively with O(1) view access.
+For pure geometry performance, dedicated spatial libraries are faster: RBush at ~0.010ms vs tinyop at ~0.110ms per query. If your workload is purely geometric without type filtering, RBush or Flatbush is the right choice. If you need `"find all entities within range that match these conditions"` in one call.
 
 ---
 
