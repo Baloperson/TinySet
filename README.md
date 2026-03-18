@@ -1,6 +1,6 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 # tinyop.js
-
+Works anywhere with JavaScript and memory.
 Tinyop is a typed entity store with spatial indexing, reactive events, and compound queries. 8kB, zero dependencies. The infrastructure you'd otherwise rebuild.
 
 tinyop provides a unified data layer that works identically in browsers, Node.js, and React Native. The core library handles local state with advanced querying; the optional `+` extension adds distributed features with causal consistency.
@@ -67,9 +67,11 @@ It wins on **mixed workloads** — the benchmark that reflects real application 
 
 ---
 
+
+
 ## Benchmarks
 
-All benchmarks run on Node v24, Intel Xeon Platinum 8370C, median of 15 runs. Compared against LokiJS, NodeCache, MemoryCache, Lodash collections, Immutable.js, and raw Array/Object stores.
+All benchmarks run on Node v22, Intel Xeon Platinum 8370C, median of 15 runs. Compared against LokiJS, NodeCache, MemoryCache, Lodash collections, Immutable.js, and raw Array/Object stores.
 
 > **Hardware variance.** Absolute numbers scale with your CPU — an AMD FX-6350 scores roughly half these figures. What stays stable across machines is the *relative ordering*. Run `node bench.js` to measure on your own hardware.
 
@@ -77,16 +79,17 @@ All benchmarks run on Node v24, Intel Xeon Platinum 8370C, median of 15 runs. Co
 
 | Library | ops/sec |
 |---|---|
-| **tinyop** | **113,844** |
-| LokiJS | 86,131 |
-| MemoryCache | 26,508 |
-| Lodash | ~14,000 |
-| NodeCache | ~13,000 |
-| Immutable | ~10,000 |
-| Array Store | ~9,500 |
-| Object Store | ~4,300 |
+| **tinyop** | **115,978** |
+| LokiJS | 85,354 |
+| MemoryCache | 26,404 |
+| Lodash | 26,161 |
+| QuickLRU | 26,588 |
+| NodeCache | 24,704 |
+| Immutable | 18,878 |
+| Array Store | 16,995 |
+| Object Store | 9,004 |
 
-tinyop leads this category. The closest competitor is LokiJS at 86,131 ops/sec — a ~32% margin. LokiJS has a native B-tree field index that gives it an advantage on compound queries specifically; tinyop closes that gap with a hot/cold query cache that promotes frequently-used compound predicates to sub-0.01ms lookup. Every other library trails by 4× or more.
+tinyop leads this category. The closest competitor is LokiJS at 85,354 ops/sec — a ~36% margin. LokiJS has a native B-tree field index that gives it an advantage on compound queries specifically; tinyop closes that gap with an LRU query cache (128 entry) that promotes frequently-used predicates to sub-0.01ms lookup. Every other library trails by 4× or more.
 
 The mixed workload is the benchmark that matters. Isolated read or write microbenchmarks favour specialised structures — real systems don't run isolated operations.
 
@@ -94,50 +97,58 @@ The mixed workload is the benchmark that matters. Isolated read or write microbe
 
 | Library | ops/sec |
 |---|---|
-| **tinyop** | **1,032K** |
-| LokiJS | 646K |
-| Lodash | ~500K |
-| Array Store | ~420K |
-| Object Store | ~320K |
+| **tinyop** | **1,885K** |
+| LokiJS | 1,280K |
+| Lodash | 1,412K |
+| QuickLRU | 1,193K |
+| Array Store | 1,152K |
+| Object Store | 693K |
 
-tinyop leads creates, beating LokiJS by ~27%. The counter-based id generator (replacing `Date.now() + Math.random()`) and a single `Date.now()` call per write account for most of the improvement.
+tinyop leads creates, beating LokiJS by ~47%. The counter-based id generator (replacing `Date.now() + Math.random()`) and a single `Date.now()` call per write account for most of the improvement.
 
 ### Read performance — 100,000 random reads
 
 | Library | ops/sec |
 |---|---|
-| **tinyop (ref)** | **112.7M** |
-| Object Store | 15M |
-| MemoryCache | 12.7M |
-| Array Store | 10.9M |
-| tinyop (safe get) | 12.1M |
+| **tinyop (ref)** | **111.7M** |
+| MemoryCache | 26.2M |
+| Object Store | 19.1M |
+| Lodash | 17.5M |
+| Array Store | 17.0M |
+| tinyop (safe get) | 13.8M |
+| QuickLRU | 11.8M |
+| LokiJS | 7.2M |
+| Immutable | 3.5M |
+| NodeCache | 1.6M |
 
-`store.getRef()` returns the live object directly — 112.7M ops/sec. `store.get()` returns a shallow copy for external safety — 12.1M ops/sec. Use `getRef()` in hot paths where you won't mutate the result.
+`store.getRef()` returns the live object directly — 111.7M ops/sec. `store.get()` returns a shallow copy for external safety — 13.8M ops/sec. Use `getRef()` in hot paths where you won't mutate the result.
 
 ### Query performance — avg latency per query, 10,000 entities
 
-| Library | Simple | Compound |
-|---|---|---|
-| **tinyop** | **<0.01ms** | **<0.01ms** |
-| LokiJS | 0.09ms | 0.72ms |
-| MemoryCache | 1.1ms | N/A |
-| Array Store | 3.6ms | N/A |
-| Object Store | 7.8ms | N/A |
+| Library | Simple | Compound | View (repeat query) |
+|---|---|---|---|
+| **tinyop** | **<0.01ms** | **<0.01ms** | **~0.00ms** |
+| LokiJS | 0.06ms | 0.37ms | 0.37ms |
+| MemoryCache | 1.1ms | N/A | 1.1ms |
+| Array Store | 1.89ms | N/A | 1.89ms |
+| Object Store | 7.8ms | N/A | 7.8ms |
 
-tinyop's hot/cold query cache promotes repeated queries — including compound `where.and`/`where.or` predicates — to frozen Q objects returned in under 0.01ms. LokiJS is the only other library that supports compound operators natively, at 0.72ms for the complex path.
+tinyop's LRU query cache promotes repeated queries — including compound `where.and`/`where.or` predicates — to frozen Q objects returned in under 0.01ms. **v3.4 adds views** (`store.view(type, predicate)`), which maintain a live, cached result set that updates automatically when relevant items change. Repeated access to a view is **O(1)** — literally a cached array return — dropping latency below measurable threshold after the first evaluation. Views also support spatial recentering without recomputation when movement stays within a threshold.
+
+LokiJS is the only other library that supports compound operators natively, at 0.37ms for the complex path — and every repeat query pays that cost again.
 
 ### Other categories
 
 | Category | tinyop | Fastest overall |
 |---|---|---|
-| Update (50k) | 1,456K ops/sec | Lodash 6.5M |
+| Update (50k) | 3,522K ops/sec | Array Store 6,747K |
 | Memory per item | ~667 bytes | LokiJS 565 bytes |
 
 ### Spatial queries
 
-tinyop's spatial index is built for **entity queries**, not raw geometry throughput. `store.near('typeA', x, y, radius)` searches only the typeA index — in a mixed-type store this eliminates 50–90% of candidates before any distance calculation.
+tinyop's spatial index is built for **entity queries**, not raw geometry throughput. `store.near('typeA', x, y, radius)` searches only the typeA index — in a mixed-type store this eliminates 50–90% of candidates before any distance calculation. With v3.4, spatial queries can be wrapped in views that recenter efficiently without rebuilding the result set when movement is within a configured threshold.
 
-For pure geometry performance, dedicated spatial libraries are faster: RBush at ~0.013ms vs tinyop at ~0.22ms per query. If your workload is purely geometric without type filtering, RBush or Flatbush is the right choice. If you need `"find all entities within range that match these conditions"` in one call, tinyop handles it natively.
+For pure geometry performance, dedicated spatial libraries are faster: RBush at ~0.010ms vs tinyop at ~0.110ms per query. If your workload is purely geometric without type filtering, RBush or Flatbush is the right choice. If you need `"find all entities within range that match these conditions"` in one call, tinyop handles it natively with O(1) view access.
 
 ---
 
