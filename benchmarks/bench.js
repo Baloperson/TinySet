@@ -31,7 +31,7 @@ function makePRNG(seed) {
 }
 
 // ── harness ───────────────────────────────────────────────────────────────────
-const RUNS = 15  // take median across N runs to reduce noise
+const RUNS = 30  // take median across N runs to reduce noise
 
 function time(fn, rand) {
   const t = performance.now()
