@@ -1,4 +1,5 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 # tinyop.js
 
@@ -107,7 +108,8 @@ All benchmarks: Node v22, Intel Xeon Platinum 8370C, median of 30 runs.
 | Object Store | 8,104 |
 
 The mixed workload is the one that reflects real usage — isolated microbenchmarks favour specialised structures. tinyop leads by 24× over LokiJS and more than 79× over every other library in this category.
-The headline improvement from earlier versions is primarily from v3.5 field-aware cache invalidation. In a mixed workload, writes previously evicted all cached queries for a type. With field-aware invalidation, a write to hp leaves zone and active queries warm — the cache hit rate on the query-heavy portion of the workload increases substantially.
+
+The headline improvement over earlier versions is primarily from v3.5 field-aware cache invalidation. Before v3.5, every write evicted all cached queries for that type — every find in the 40% of mixed-workload operations paid the full scan cost. With field-aware invalidation, a write to `hp` leaves `zone` and `active` queries warm. In a workload with frequent writes and repeated queries, the cache hit rate on the query portion increases substantially and that directly multiplies throughput. Earlier published numbers also used an AMD FX-6350; the Xeon figures here are not directly comparable.
 
 ### Create — 10,000 items
 
