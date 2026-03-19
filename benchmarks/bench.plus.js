@@ -9,7 +9,7 @@ import os from 'os'
 const fmt  = n  => Math.round(n).toLocaleString()
 const fmtB = b  => { if(!b) return '0 B'; const u=['B','KB','MB','GB'],i=Math.floor(Math.log(b)/Math.log(1024)); return (b/1024**i).toFixed(2)+' '+u[i] }
 const wait = ms => new Promise(r => setTimeout(r, ms))
-const RUNS = 5
+const RUNS = 30
 const median = a => [...a].sort((x,y)=>x-y)[Math.floor(a.length/2)]
 const bench  = async fn => {
   const times = []
