@@ -11,9 +11,9 @@ tinyop provides a unified data layer that works identically in browsers, Node.js
 > The code written with tinyop reads like the question you're asking, not like the data structure that's querying it.
 
 ```
-Core:    9kB  | ~185 lines
+Core:    10kB  | ~185 lines
 Plus:    +4.6kB  | +~24 lines
-Total:   ~12kB
+Total:   ~15kB
 ```
 
 **The in-memory store for entity-component and spatial systems.**
