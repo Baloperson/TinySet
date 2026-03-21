@@ -473,8 +473,7 @@ store.merge(otherStore, 'timestamp')   // last-write-wins by modified timestamp
 | Affine batch apply | **188M items/sec** | **498M items/sec** |
 
 **Memory overhead: +81% per item (~473B → ~856B)** from the operation journal, capped at 10,000 entries by default and only allocated when using `tinyop+`.
-> 570M ops/sec is essentially the CPU's maximum speed—5 cycles per operation.
-
+These are mathematical operations in the distribution layer, not entity store operations. Entity store operations (create/update/find) are shown in the main benchmarks above.
 
 ---
 
