@@ -15,7 +15,7 @@ Total:  ~14kB
 ```
 7kB Minified
 2.8kB Minified + Gzipped
----
+
 
 ## What this is
 
