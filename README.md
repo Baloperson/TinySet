@@ -16,7 +16,7 @@ Total:  ~14kB
 
 ---
 
-## What it is
+## What this is
 
 Tinyop stores **typed entities** — plain objects with an `id`, a `type`, and any fields you choose. It maintains indexes automatically so you can retrieve them instantly by type, filter them with compound predicates, find them by spatial proximity, and react to changes through events — all in a single in-memory structure with zero configuration.
 
