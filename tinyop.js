@@ -4,7 +4,6 @@
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, version 3 of the License
 //
-//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -17,7 +16,7 @@
 // v3.6.1: adaptive performance — skip Set creation when cache cold, timestamp only when needed,
 // v3.6.2: optimized for V8 deop count lowered
 // v3.6.3: fixed transaction + spatial index consistency on rollback
-//         
+// v3.6.4: subfield-aware invalidation
 const VERSION=Symbol('version'), _k=(f,k)=>(f._key=k,f);
 export const where={
   eq:(k,v)=>_k(i=>i[k]===v,`eq:${k}:${v}`), ne:(k,v)=>i=>i[k]!==v,
@@ -30,6 +29,10 @@ export const where={
   or:(...fs)=>{const f=i=>fs.some(f=>f(i)), ks=fs.map(x=>x?._key); f._key=ks.every(Boolean)?`or(${ks})`:null; return f}
 };
 const _fc=new Map(), _gf=k=>{let f=_fc.get(k);if(!f){const m=k.match(/(?:eq|ne|gt|gte|lt|lte|in|exists):([^:,)]+)/g)||[];f=new Set(m.map(s=>s.split(':')[1]));_fc.set(k,f);}return f;};
+const _isPlainObject=v=>v&&typeof v=='object'&&v.constructor===Object;
+const _diffPaths=(oldObj,newObj,prefix)=>{const out=[];const stack=[{old:oldObj,new:newObj,prefix}];while(stack.length){const item=stack.pop(),{old,new:ne,prefix:pr}=item;const keys=new Set([...Object.keys(old),...Object.keys(ne)]);for(const k of keys){const ov=old[k], nv=ne[k];if(ov===nv) continue;const path=`${pr}.${k}`;if(_isPlainObject(ov)&&_isPlainObject(nv)){stack.push({old:ov,new:nv,prefix:path});}else{out.push(path);}}}return out;};
+const _pathsIntersect=(fieldPath,changedPath)=>fieldPath===changedPath||fieldPath.startsWith(changedPath+'.')||changedPath.startsWith(fieldPath+'.');
+const _predicateNeedsInvalidate=(pf,cf)=>{if(!pf||!cf||(!cf._isArray&&cf instanceof Set&&cf.size===0)) return false;const changed = cf._isArray ? cf : cf instanceof Set ? [...cf] : [cf];for(const f of pf){for(const c of changed){if(_pathsIntersect(f,c)) return true;}}return false;};
 export function createStore(o={}){
   const items=new Map(), meta=new Map(), listeners=new Map(), idx={type:new Map(), spatial:new Map(), coords:new Map()};
   let _id=0; const cfg={id:o.idGenerator||(()=>String(++_id)), types:o.types||new Set(), defs:o.defaults||{}, grid:o.spatialGridSize||100};
@@ -52,7 +55,7 @@ export function createStore(o={}){
     }
   };
   const versions=new Map(), qh=new Map(), qi=new Map(), MAX_QH=128;
-  const qbump=(t,cf)=>{const hm=qh.get(t);if(hm?.size){if(!cf)hm.clear();else{const d=[];hm.forEach((_,k)=>{const pf=_gf(k);if(cf._isArray){for(let i=0;i<cf.length;i++)if(pf.has(cf[i])){d.push(k);break;}}else{for(const f of cf)if(pf.has(f)){d.push(k);break;}}});for(let i=0;i<d.length;i++)hm.delete(d[i]);}}if(qi.size)for(const m of qi.values())m.delete(t);const v=versions.get(t);if(v){v.version++;v.views.forEach(f=>f());}};
+  const qbump=(t,cf)=>{const hm=qh.get(t);if(hm?.size){if(!cf)hm.clear();else{const d=[];hm.forEach((_,k)=>{const pf=_gf(k);if(_predicateNeedsInvalidate(pf,cf)){d.push(k);} });for(let i=0;i<d.length;i++)hm.delete(d[i]);}}if(qi.size)for(const m of qi.values())m.delete(t);const v=versions.get(t);if(v){v.version++;v.views.forEach(f=>f());}};
 const w = (id, ch, o={}) => {
     const old=items.get(id), changes=typeof ch=='function'?ch(old):ch;
     if(old){
@@ -60,23 +63,28 @@ const w = (id, ch, o={}) => {
       const oldForTx=inTx?{...old}:null, oldForUi={type:old.type,x:old.x,y:old.y};
       let snap=!o.silent&&hasListeners?{...old}:null;
       if(cfg.types.size&&!cfg.types.has(changes?.type||old.type)) throw Error(`Invalid type: ${changes?.type||old.type}`);
+      let cf=null;
       if(changes&&typeof changes=='object'&&changes.constructor===Object){
         const ks=Object.keys(changes);
-        for(let i=0;i<ks.length;i++) old[ks[i]]=changes[ks[i]];
-      }else if(changes) Object.assign(old,changes);
-
-      old.modified=now;
-
-      const qhType=qh.get(old.type);
-      let cf=null;
-      if(qhType?.size&&changes&&typeof changes=='object'&&changes.constructor===Object){
-        const ks=Object.keys(changes);
-        cf=ks.length<8 ? (ks._isArray=true,ks) : new Set(ks);
+        const changedFields=[];
+        for(const k of ks){
+          const oldVal=old[k], newVal=changes[k];
+          if(_isPlainObject(oldVal) && _isPlainObject(newVal)){
+            const subPaths=_diffPaths(oldVal,newVal,k);
+            if(subPaths.length) changedFields.push(...subPaths);
+          } else if(oldVal!==newVal){
+            changedFields.push(k);
+          }
+          old[k]=changes[k];
+        }
+        if(changedFields.length){ cf = changedFields.length<8 ? (changedFields._isArray=true,changedFields) : new Set(changedFields); }
+      } else if(changes) {
+        Object.assign(old,changes);
       }
-      const hasSpatial= !cf || (cf._isArray ? (cf.includes('x')||cf.includes('y')) : (cf.has('x')||cf.has('y')));
+      old.modified=now;
+      const qhType=qh.get(old.type);      const hasSpatial= !cf || (cf._isArray ? (cf.includes('x')||cf.includes('y')) : (cf.has('x')||cf.has('y')));
       ui('update',old,oldForUi,hasSpatial);
       if(cf) qbump(old.type,cf);
-
       if(!o.silent&&hasListeners){
         emit('update',{id,item:old,old:snap});
         emit('change',{type:'update',id,item:old});
