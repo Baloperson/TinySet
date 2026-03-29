@@ -16,7 +16,7 @@
 // tinyop.js v3.6.0 - compact store with queries, spatial indexing, views, transactions
 // v3.6.1: adaptive performance — skip Set creation when cache cold, timestamp only when needed,
 // v3.6.2: optimized for V8 deop count lowered
-// v3.6.3: fixed transaction + spatial index consistency on rollback restored _isArray fast-path for cf → no performance regression
+// v3.6.3: fixed transaction + spatial index consistency on rollback
 //         
 const VERSION=Symbol('version'), _k=(f,k)=>(f._key=k,f);
 export const where={
@@ -59,9 +59,7 @@ const w = (id, ch, o={}) => {
       const inTx=!!meta.get('tx'), hasListeners=listeners.has('update')||listeners.has('change'), now=Date.now();
       const oldForTx=inTx?{...old}:null, oldForUi={type:old.type,x:old.x,y:old.y};
       let snap=!o.silent&&hasListeners?{...old}:null;
-
       if(cfg.types.size&&!cfg.types.has(changes?.type||old.type)) throw Error(`Invalid type: ${changes?.type||old.type}`);
-
       if(changes&&typeof changes=='object'&&changes.constructor===Object){
         const ks=Object.keys(changes);
         for(let i=0;i<ks.length;i++) old[ks[i]]=changes[ks[i]];
@@ -73,11 +71,9 @@ const w = (id, ch, o={}) => {
       let cf=null;
       if(qhType?.size&&changes&&typeof changes=='object'&&changes.constructor===Object){
         const ks=Object.keys(changes);
-        cf=ks.length<8 ? {has:f=>ks.includes(f),size:ks.length,_isArray:true} : new Set(ks);
+        cf=ks.length<8 ? (ks._isArray=true,ks) : new Set(ks);
       }
-
-      const hasSpatial= !cf || (cf._isArray ? cf.has('x')||cf.has('y') : cf.has('x')||cf.has('y'));
-
+      const hasSpatial= !cf || (cf._isArray ? (cf.includes('x')||cf.includes('y')) : (cf.has('x')||cf.has('y')));
       ui('update',old,oldForUi,hasSpatial);
       if(cf) qbump(old.type,cf);
 
@@ -118,6 +114,23 @@ const w = (id, ch, o={}) => {
     const ts=idx.type.get(t), r=[]; if(ts) for(const id of ts){ const it=items.get(id); if(it&&(!p||p(it))) r.push(it); }
     const q=Q(r); if(!m){ if(qi.size>=MAX_QH) qi.delete(qi.keys().next().value); qi.set(rk,new Map().set(t,q)); } else m.set(t,q); return q;
   };
+  const spatial=(type,x,y,max,p)=>{
+    const ts=idx.type.get(type); if(!ts) return[];
+    const g=cfg.grid, m=max*max;
+    const minCX=Math.floor((x-max)/g), maxCX=Math.floor((x+max)/g);
+    const minCY=Math.floor((y-max)/g), maxCY=Math.floor((y+max)/g);
+    const cand=[];
+    for(let cx=minCX; cx<=maxCX; cx++)
+      for(let cy=minCY; cy<=maxCY; cy++)
+        idx.spatial.get(cx*1e9+cy)?.forEach(id=>ts.has(id)&&cand.push(id));
+    const r=[];
+    for(const id of cand){
+      const p0=idx.coords.get(id); if(!p0) continue;
+      const dx=p0.x-x, dy=p0.y-y, ds=dx*dx+dy*dy;
+      if(ds<=m){ const it=items.get(id); if(it&&(!p||p(it))) r.push({it,ds}); }
+    }
+    return r.sort((a,b)=>a.ds-b.ds).map(v=>v.it);
+  };
   const near=(t,x,y,d,p)=>Q(spatial(t,x,y,d,p));
   const get=id=>{ const it=items.get(id); return it?{...it}:null; };
   const ref=id=>items.get(id)||null;
@@ -139,7 +152,7 @@ const tx=fn=>{
         if(op.type=='create'){ items.delete(op.id); ui('remove',op.new); }
         else if(op.type=='update'){ 
           items.set(op.id,op.old); 
-          ui('update',op.old,{type:op.old.type,x:op.old.x,y:op.old.y},true); 
+          ui('update',op.old,{type:op.new.type,x:op.new.x,y:op.new.y},true); 
         }
         else{ items.set(op.id,op.item); ui('add',op.item,null,null); }
       }
