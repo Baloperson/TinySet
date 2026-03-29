@@ -488,6 +488,10 @@ These are mathematical operations in the distribution layer, not entity store op
 
 ---
 
+## TypeScript
+
+Full type definitions are included.
+
 ## Limitations
 
 - **In-memory only.** Serialize `store.dump()` to localStorage, IndexedDB, or a backend for persistence. `tinyop+` simplifies this with `store.checkpoint()`.
