@@ -16,8 +16,7 @@
 // v3.5.1: spatial index skip on non-spatial writes; Array cand in near(); batch qbump; qi size guard
 // tinyop.js v3.6.0 - compact store with queries, spatial indexing, views, transactions
 // v3.6.1: adaptive performance — skip Set creation when cache cold, timestamp only when needed,
-//         
-
+// v3.6.2: optimized for V8 deop count lowered
 const VERSION=Symbol('version'), _k=(f,k)=>(f._key=k,f);
 export const where={
   eq:(k,v)=>_k(i=>i[k]===v,`eq:${k}:${v}`), ne:(k,v)=>i=>i[k]!==v,
@@ -52,35 +51,67 @@ export function createStore(o={}){
     }
   };
   const versions=new Map(), qh=new Map(), qi=new Map(), MAX_QH=128;
-  const qbump=(t,cf)=>{ const hm=qh.get(t);
-    if(hm?.size){ if(!cf) hm.clear(); else for(const k of hm.keys()){ const pf=_gf(k); for(const f of cf) if(pf.has(f)){ hm.delete(k); break; } } }
-    if(qi.size) for(const m of qi.values()) m.delete(t);
-    const v=versions.get(t); if(v){ v.version++; v.views.forEach(f=>f()); }
-  };
-  const w=(id,ch,o={})=>{
-    const old=items.get(id), changes=typeof ch=='function'?ch(old):ch;
-    if(old){
-      const inTx=!!meta.get('tx'), hasListeners=listeners.has('update')||listeners.has('change'), now=Date.now();
-      const preMutation={type:old.type,x:old.x,y:old.y}, preMutationForTx=inTx?{...old}:null;
-      let snap=!o.silent&&hasListeners?{...old}:null;
-      if(cfg.types.size&&!cfg.types.has(changes.type||old.type)) throw Error(`Invalid type: ${changes.type||old.type}`);
-      Object.assign(old,changes); old.modified=now;
-      const qhType=qh.get(old.type), cf=qhType?.size&&changes&&typeof changes=='object'?new Set(Object.keys(changes)):null;
-      ui('update',old,preMutation,!cf||cf.has('x')||cf.has('y'));
-      if(cf) qbump(old.type,cf);
-      if(!o.silent&&hasListeners){ emit('update',{id,item:old,old:snap}); emit('change',{type:'update',id,item:old}); }
-      if(inTx) meta.get('tx').at(-1).push({type:'update',id,old:preMutationForTx,new:{...old}});
+  const qbump=(t,cf)=>{const hm=qh.get(t);if(hm?.size){if(!cf)hm.clear();else{const d=[];hm.forEach((_,k)=>{const pf=_gf(k);if(cf._isArray){for(let i=0;i<cf.length;i++)if(pf.has(cf[i])){d.push(k);break;}}else{for(const f of cf)if(pf.has(f)){d.push(k);break;}}});for(let i=0;i<d.length;i++)hm.delete(d[i]);}}if(qi.size)for(const m of qi.values())m.delete(t);const v=versions.get(t);if(v){v.version++;v.views.forEach(f=>f());}};
+  const w = (id, ch, o = {}) => {
+    const old = items.get(id);
+    const changes = typeof ch == 'function' ? ch(old) : ch;
+    if (old) {
+      const inTx = !!meta.get('tx');
+      const hasListeners = listeners.has('update') || listeners.has('change');
+      const now = Date.now();
+      const preMutation = { type: old.type, x: old.x, y: old.y };
+      const preMutationForTx = inTx ? { ...old } : null;
+      let snap = !o.silent && hasListeners ? { ...old } : null;
+      if (cfg.types.size && !cfg.types.has(changes.type || old.type)) {
+        throw Error(`Invalid type: ${changes.type || old.type}`);
+      }
+      if (changes && changes.constructor === Object) {
+        const ks = Object.keys(changes);
+        for (let i = 0; i < ks.length; i++) old[ks[i]] = changes[ks[i]];
+      } else {
+        Object.assign(old, changes);
+      }
+      old.modified = now;
+      const qhType = qh.get(old.type);
+      const isObj = changes && changes.constructor === Object;
+      const ks = isObj ? Object.keys(changes) : [];
+      let cf = null;
+      if (qhType?.size && isObj) {
+        cf = ks.length < 8 
+          ? { has: f => ks.includes(f), size: ks.length, _isArray: true }
+          : new Set(ks);
+      }
+      const hasSpatialChange = !cf || (cf._isArray ? cf.has('x') || cf.has('y') : cf.has('x') || cf.has('y'));
+      ui('update', old, preMutation, hasSpatialChange);
+      if (cf) qbump(old.type, cf);
+      if (!o.silent && hasListeners) {
+        emit('update', { id, item: old, old: snap });
+        emit('change', { type: 'update', id, item: old });
+      }
+      if (inTx) {
+        meta.get('tx').at(-1).push({ type: 'update', id, old: preMutationForTx, new: { ...old } });
+      }
       return old;
-    } else {
-      const now=Date.now(); const it={id,created:now,modified:now,...changes};
-      if(cfg.types.size&&!cfg.types.has(it.type)) throw Error(`Invalid type: ${it.type}`);
-      items.set(id,it); ui('add',it,null,null); qbump(it.type,null);
-      if(!o.silent){ emit('create',{id,item:it,old:null}); emit('change',{type:'create',id,item:it}); }
-      if(meta.get('tx')) meta.get('tx').at(-1).push({type:'create',id,old:null,new:{...it}});
+    } 
+    else {
+      const now = Date.now();
+      const it = { id, created: now, modified: now, ...changes };
+      if (cfg.types.size && !cfg.types.has(it.type)) {
+        throw Error(`Invalid type: ${it.type}`);
+      }
+      items.set(id, it);
+      ui('add', it, null, null);
+      qbump(it.type, null);
+      if (!o.silent) {
+        emit('create', { id, item: it, old: null });
+        emit('change', { type: 'create', id, item: it });
+      }
+      if (meta.get('tx')) {
+        meta.get('tx').at(-1).push({ type: 'create', id, old: null, new: { ...it } });
+      }
       return it;
     }
-  };
-  const spatial=(type,x,y,max,p)=>{ const ts=idx.type.get(type); if(!ts) return[];
+};  const spatial=(type,x,y,max,p)=>{ const ts=idx.type.get(type); if(!ts) return[];
     const g=cfg.grid, m=max*max, minCX=Math.floor((x-max)/g), maxCX=Math.floor((x+max)/g), minCY=Math.floor((y-max)/g), maxCY=Math.floor((y+max)/g);
     const cand=[], r=[];
     for(let cx=minCX; cx<=maxCX; cx++) for(let cy=minCY; cy<=maxCY; cy++) idx.spatial.get(cx*1e9+cy)?.forEach(id=>ts.has(id)&&cand.push(id));
