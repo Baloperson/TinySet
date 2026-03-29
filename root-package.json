@@ -1,15 +1,30 @@
 {
   "name": "tinyop",
-  "version": "1.0.0",
-  "description": "Typed entity store with spatial indexing, compound queries, and reactive events. 8kB, zero dependencies.",
+  "version": "3.6.3",
+  "description": "High-performance in-memory entity store with spatial indexing, cached queries, live views, and transactions. ~8kB, zero dependencies.",
+  "keywords": [
+    "entity-store",
+    "in-memory-database",
+    "spatial-index",
+    "ecs",
+    "entity-component-system",
+    "game-dev",
+    "query-engine",
+    "reactive",
+    "state-management",
+    "live-views"
+  ],
   "type": "module",
   "main": "./tinyop.js",
+  "types": "./tinyop.d.ts",
   "exports": {
     ".": {
+      "types": "./tinyop.d.ts",
       "import": "./tinyop.js",
       "default": "./tinyop.js"
     },
     "./plus": {
+      "types": "./tinyop.d.ts",
       "import": "./tinyop.plus.js",
       "default": "./tinyop.plus.js"
     }
@@ -17,20 +32,11 @@
   "files": [
     "tinyop.js",
     "tinyop.plus.js",
+    "tinyop.d.ts",
     "README.md",
     "LICENSE"
   ],
-  "keywords": [
-    "entity-component-system",
-    "spatial-index",
-    "state-management",
-    "in-memory",
-    "query",
-    "game-dev",
-    "ecs",
-    "reactive"
-  ],
-  "author": "Baloperson",
+  "author": "R Balog <baloperson>",
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
@@ -42,5 +48,9 @@
   },
   "engines": {
     "node": ">=16.0.0"
+  },
+  "scripts": {
+    "test": "node --test test.js",
+    "bench": "node benchmarks/index.js"
   }
 }
