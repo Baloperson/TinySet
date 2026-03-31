@@ -1,4 +1,4 @@
-declare module 'tinyop' {
+declare module 'QuOp' {
   export type Schema = Record<string, Record<string, any>>;
 
   export interface StoreConfig {
@@ -79,7 +79,7 @@ declare module 'tinyop' {
     batch: BatchEvent;
   };
 
-  export interface TinyOpStore<S extends Schema = Schema> {
+  export interface QuOpStore<S extends Schema = Schema> {
     create<K extends keyof S>(type: K, data?: Partial<S[K]>): S[K];
     createMany<K extends keyof S>(type: K, arr: Partial<S[K]>[]): S[K][];
 
@@ -175,7 +175,7 @@ declare module 'tinyop' {
 
   export function createStore<S extends Schema = Schema>(
     config?: StoreConfig
-  ): TinyOpStore<S>;
+  ): QuOpStore<S>;
 
   export default createStore;
 }
