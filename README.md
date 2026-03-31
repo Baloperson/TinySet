@@ -1,12 +1,12 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
-# tinyop.js
+# QuOp.js
 
 Works anywhere with JavaScript and memory.
 
-Tinyop is a typed entity store with spatial indexing, reactive events, and compound queries. ~10kB, zero dependencies.
+QuOp is a typed entity store with spatial indexing, reactive events, and compound queries. ~10kB, zero dependencies.
 
-> The code written with tinyop reads like the question you're asking, not like the data structure answering it.
+> The code written with QuOp reads like the question you're asking, not like the data structure answering it.
 
 ```
 Core:   ~10kB  | ~190 lines
@@ -19,11 +19,11 @@ Total:  ~14kB
 
 ## What this is
 
-Tinyop stores **typed entities** — plain objects with an `id`, a `type`, and any fields you choose. It maintains indexes automatically so you can retrieve them instantly by type, filter them with compound predicates, find them by spatial proximity, and react to changes through events — all in a single in-memory structure with zero configuration.
+QuOp stores **typed entities** — plain objects with an `id`, a `type`, and any fields you choose. It maintains indexes automatically so you can retrieve them instantly by type, filter them with compound predicates, find them by spatial proximity, and react to changes through events — all in a single in-memory structure with zero configuration.
 
 
 ```js
-import { createStore, where } from './tinyop.js'
+import { createStore, where } from './QuOp.js'
 
 const store = createStore()
 
@@ -84,7 +84,7 @@ The write path in `w()` makes decisions based on what is actually needed:
 The result is a write path that pays for what it uses. A store with no listeners, no cached queries, and no spatial coordinates is close to the cost of a bare Map mutation.
 
 ## Practical guide
-To take advantage of tinyops cache, its a good idea to choose a abstraction level such that one entity is sparse in changes.
+To take advantage of QuOps cache, its a good idea to choose a abstraction level such that one entity is sparse in changes.
 
 ---
 
@@ -99,8 +99,8 @@ All benchmarks: Node v22, Intel Xeon Platinum 8370C, median of 100 runs + 20 war
 
 | Library | Cold Start (ops/sec) | Warmed JIT (ops/sec) |
 |---------|---------------------|---------------------|
-| **tinyop (ref)** | **1,457,095** | **8,549,449** |
-| **tinyop (safe get)** | **1,430,647** | **7,139,960** |
+| **QuOp (ref)** | **1,457,095** | **8,549,449** |
+| **QuOp (safe get)** | **1,430,647** | **7,139,960** |
 | LokiJS | 67,574 | 85,987 |
 | MemoryCache | 22,450 | 27,806 |
 | Lodash | 19,376 | 27,841 |
@@ -112,7 +112,7 @@ All benchmarks: Node v22, Intel Xeon Platinum 8370C, median of 100 runs + 20 war
 
 
 The mixed workload is the one that reflects real usage.
-The gap between tinyop and LokiJS widens after JIT warmup, which reflects long-running application behavior.
+The gap between QuOp and LokiJS widens after JIT warmup, which reflects long-running application behavior.
 
 The improvement over earlier versions is primarily from v3.5 field-aware cache invalidation. Before v3.5, every write evicted all cached queries for that type — every find in the 40% of mixed-workload operations paid the full scan cost. With field-aware invalidation, a write to `hp` leaves `zone` and `active` queries warm. In a workload with frequent writes and repeated queries, the cache hit rate on the query portion increases substantially and that directly multiplies throughput. 
 
@@ -124,8 +124,8 @@ The improvement over earlier versions is primarily from v3.5 field-aware cache i
 | Lodash | 1,135,045 | 3,876,588 |
 | QuickLRU | 1,086,046 | 2,877,124 |
 | LokiJS | 728,695 | 2,674,146 |
-| **tinyop (ref)** | **831,066** | **2,403,271** |
-| **tinyop (safe get)** | **601,651** | **2,204,061** |
+| **QuOp (ref)** | **831,066** | **2,403,271** |
+| **QuOp (safe get)** | **601,651** | **2,204,061** |
 | Object Store | 895,596 | 2,413,435 |
 | MemoryCache | 489,873 | 1,761,316 |
 | Immutable | 209,405 | 1,755,175 |
@@ -136,13 +136,13 @@ The improvement over earlier versions is primarily from v3.5 field-aware cache i
 
 | Library | Cold Start (ops/sec) | Warmed JIT (ops/sec) |
 |---------|---------------------|---------------------|
-| **tinyop (ref)** | **22,121,598** | **112,066,038** |
+| **QuOp (ref)** | **22,121,598** | **112,066,038** |
 | Array Store | 13,042,127 | 29,358,608 |
 | Lodash | 21,786,820 | 28,297,797 |
 | QuickLRU | 14,991,823 | 21,800,195 |
 | Object Store | 10,209,436 | 20,395,464 |
 | MemoryCache | 12,951,977 | 19,187,023 |
-| **tinyop (safe get)** | **3,705,392** | **14,968,267** |
+| **QuOp (safe get)** | **3,705,392** | **14,968,267** |
 | Immutable | 4,178,187 | 14,520,987 |
 | LokiJS | 4,266,869 | 8,028,588 |
 | NodeCache | 919,979 | 1,326,635 |
@@ -159,26 +159,26 @@ The improvement over earlier versions is primarily from v3.5 field-aware cache i
 | Lodash | 5,522,604 | 7,545,621 |
 | QuickLRU | 2,475,714 | 6,102,144 |
 | Object Store | 1,795,726 | 5,650,910 |
-| **tinyop (ref)** | **2,469,237** | **5,023,976** |
-| **tinyop (safe get)** | **2,263,410** | **5,111,053** |
+| **QuOp (ref)** | **2,469,237** | **5,023,976** |
+| **QuOp (safe get)** | **2,263,410** | **5,111,053** |
 | MemoryCache | 1,860,320 | 3,171,068 |
 | LokiJS | 988,538 | 2,275,467 |
 | Immutable | 643,840 | 1,449,429 |
 | NodeCache | 357,440 | 662,883 |
 
-Isolated update microbenchmarks favour raw stores that do nothing beyond setting a property. Each tinyop write maintains type and spatial indexes, derives changed fields for selective cache invalidation, and handles transaction logging. The mixed workload, where these investments pay back through cache-hit reads and queries, is the relevant comparison.
+Isolated update microbenchmarks favour raw stores that do nothing beyond setting a property. Each QuOp write maintains type and spatial indexes, derives changed fields for selective cache invalidation, and handles transaction logging. The mixed workload, where these investments pay back through cache-hit reads and queries, is the relevant comparison.
 
 ### Query — avg latency per query, 10,000 entities
 
 | Library | Simple | Compound | Repeat |
 |---|---|---|---|
-| **tinyop** | **<0.01ms** | **<0.01ms** | **~0.00ms** |
+| **QuOp** | **<0.01ms** | **<0.01ms** | **~0.00ms** |
 | LokiJS | 0.04ms | 0.41ms | 0.41ms |
 | MemoryCache | 0.64ms | N/A | 0.64ms |
 | Array Store | 2.18ms | N/A | 2.18ms |
 | Object Store | 5.26ms | N/A | 5.26ms |
 
-LokiJS is the only other library with native compound operator support. Every repeat query pays 0.41ms regardless of what changed. Tinyop's field-aware invalidation keeps unrelated predicates warm, so repeated access between writes is effectively free.
+LokiJS is the only other library with native compound operator support. Every repeat query pays 0.41ms regardless of what changed. QuOp's field-aware invalidation keeps unrelated predicates warm, so repeated access between writes is effectively free.
 
 ### Spatial — avg per query, 10,000 points
 
@@ -186,16 +186,16 @@ LokiJS is the only other library with native compound operator support. Every re
 |---|---|---|
 | RBush | 0.008ms | — |
 | Flatbush | 0.008ms | — |
-| **tinyop** | **0.080ms** | **0.051ms** |
+| **QuOp** | **0.080ms** | **0.051ms** |
 
-The filtered path is faster than unfiltered because the predicate prunes candidates before distance computation. For pure geometry without type filtering, RBush or Flatbush is faster. For `"all entities within range that match these conditions"` in one call, tinyop handles it natively.
+The filtered path is faster than unfiltered because the predicate prunes candidates before distance computation. For pure geometry without type filtering, RBush or Flatbush is faster. For `"all entities within range that match these conditions"` in one call, QuOp handles it natively.
 
 ### Memory — per 10,000 items
 
 | Library | Per item |
 |---|---|
 | Object Store | 572B |
-| **tinyop** | **~601B** |
+| **QuOp** | **~601B** |
 | Array Store | 637B |
 | LokiJS | 699B |
 | NodeCache | 1.04KB |
@@ -205,17 +205,17 @@ The filtered path is faster than unfiltered because the predicate prunes candida
 ## Installation
 
 ```bash
-npm install tinyop
+npm install QuOp
 ```
 
 ```js
-import { createStore, where } from 'tinyop'
+import { createStore, where } from 'QuOp'
 ```
 
 Or drop a single file into your project — no build step, no package manager:
 
 ```bash
-curl -O https://raw.githubusercontent.com/Baloperson/TinyOp/main/tinyop.js
+curl -O https://raw.githubusercontent.com/Baloperson/QuOp/main/QuOp.js
 ```
 
 ---
@@ -431,19 +431,19 @@ node --test test.js
 
 ---
 
-## tinyop+
+## QuOp+
 
-`tinyop+` wraps the base store with distribution primitives: vector clocks, an operation journal, WebSocket sync, and merge strategies. The API is identical — switching requires changing one import line.
+`QuOp+` wraps the base store with distribution primitives: vector clocks, an operation journal, WebSocket sync, and merge strategies. The API is identical — switching requires changing one import line.
 
 ```js
-import { createStore } from './tinyop.plus.js'
+import { createStore } from './QuOp.plus.js'
 
 const store = createStore({
   processId: 'node-1',
   syncUrl: 'wss://your-server',
 })
 
-// All tinyop operations work identically
+// All QuOp operations work identically
 store.create('msg', { text: 'hello', from: 'alice' })
 
 // Distribution layer
@@ -476,7 +476,7 @@ store.merge(otherStore, 'timestamp')   // last-write-wins by modified timestamp
 | Affine single apply | **519M ops/sec** | **1.87B ops/sec** | 
 | Affine batch apply | **188M items/sec** | **498M items/sec** |
 
-**Memory overhead: +81% per item (~473B → ~856B)** from the operation journal, capped at 10,000 entries by default and only allocated when using `tinyop+`.
+**Memory overhead: +81% per item (~473B → ~856B)** from the operation journal, capped at 10,000 entries by default and only allocated when using `QuOp+`.
 These are mathematical operations in the distribution layer, not entity store operations. Entity store operations (create/update/find) are shown in the main benchmarks above.
 
 ---
@@ -487,7 +487,7 @@ These are mathematical operations in the distribution layer, not entity store op
 
 **Optimised for mixed workloads.** The write path invests in indexes and cache maintenance. The read path collects the return on that investment. Workloads that only write and never query see overhead; workloads that mix reads, writes, and queries see the largest gains.
 
-**Two tiers, one API.** `tinyop.js` is the foundation — pure local performance with no distribution overhead. `tinyop+` is the distribution layer built on top. Switching is one import line. Downgrading is the same.
+**Two tiers, one API.** `QuOp.js` is the foundation — pure local performance with no distribution overhead. `QuOp+` is the distribution layer built on top. Switching is one import line. Downgrading is the same.
 
 ---
 
@@ -497,8 +497,8 @@ Full type definitions are included.
 
 ## Limitations
 
-- **In-memory only.** Serialize `store.dump()` to localStorage, IndexedDB, or a backend for persistence. `tinyop+` simplifies this with `store.checkpoint()`.
-- **Single-process.** The base store has no sync. Use `tinyop+` for multi-client or multi-process scenarios.
+- **In-memory only.** Serialize `store.dump()` to localStorage, IndexedDB, or a backend for persistence. `QuOp+` simplifies this with `store.checkpoint()`.
+- **Single-process.** The base store has no sync. Use `QuOp+` for multi-client or multi-process scenarios.
 - **No schema enforcement by default.** Pass `types` to `createStore` for runtime type validation. Field types are not validated.
 - **`store.get()` returns a shallow copy.** Prevents external mutation of stored state. Use `store.getRef()` when the copy overhead matters and you will not mutate the result.
 - **Field-aware invalidation applies only to tagged predicates.** Inline predicates (`e => e.value > 0`) carry no field information and are evicted on any write to their type. Use `where.gt('value', 0)` to benefit from selective invalidation.
