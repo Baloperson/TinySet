@@ -1,6 +1,6 @@
 {
-  "name": "tinyop",
-  "version": "3.6.3",
+  "name": "quop",
+  "version": "3.6.5",
   "description": "High-performance in-memory entity store with spatial indexing, cached queries, live views, and transactions. ~8kB, zero dependencies.",
   "keywords": [
     "entity-store",
@@ -15,24 +15,24 @@
     "live-views"
   ],
   "type": "module",
-  "main": "./tinyop.js",
-  "types": "./tinyop.d.ts",
+  "main": "./QuOp.js",
+  "types": "./QuOp.d.ts",
   "exports": {
     ".": {
-      "types": "./tinyop.d.ts",
-      "import": "./tinyop.js",
-      "default": "./tinyop.js"
+      "types": "./QuOp.d.ts",
+      "import": "./QuOp.js",
+      "default": "./QuOp.js"
     },
     "./plus": {
-      "types": "./tinyop.d.ts",
-      "import": "./tinyop.plus.js",
-      "default": "./tinyop.plus.js"
+      "types": "./QuOp.d.ts",
+      "import": "./QuOp.plus.js",
+      "default": "./QuOp.plus.js"
     }
   },
   "files": [
-    "tinyop.js",
-    "tinyop.plus.js",
-    "tinyop.d.ts",
+    "QuOp.js",
+    "QuOp.plus.js",
+    "QuOp.d.ts",
     "README.md",
     "LICENSE"
   ],
@@ -40,11 +40,11 @@
   "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Baloperson/TinyOp.git"
+    "url": "https://github.com/Baloperson/QuOp.git"
   },
-  "homepage": "https://github.com/Baloperson/TinyOp#readme",
+  "homepage": "https://github.com/Baloperson/QuOp#readme",
   "bugs": {
-    "url": "https://github.com/Baloperson/TinyOp/issues"
+    "url": "https://github.com/Baloperson/QuOp/issues"
   },
   "engines": {
     "node": ">=16.0.0"
