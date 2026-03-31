@@ -2,7 +2,7 @@
 // usage:  node --expose-gc bench.js
 // deps:   npm install lokijs lodash immutable rbush flatbush node-cache memory-cache quick-lru
 
-import { createStore as createtinyop, where } from '../tinyop.js'
+import { createStore as createtinyop, where } from '../QuOp.js'
 
 
 // ── optional libraries ────────────────────────────────────────────────────────
